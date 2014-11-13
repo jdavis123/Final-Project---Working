@@ -1,6 +1,6 @@
 ################################################# 
 # Final Project
-# Jeremy Thames #
+# Jeremy Thames & Josh Davis#
 # Predicting NCAA Tournament Entries #
 # 9/24/14 #
 ################################################# 
@@ -10,7 +10,8 @@ library(plyr)
 library(scales)
 library(AUC)
 library(caret)
-
+library(car)
+library(boot)
 
 #Pull The '13-'14,  '12-'13, & '11-'12 Data From Our CSV File
 
@@ -41,133 +42,102 @@ ncaa2011<-ncaa2011[,-2]
 ncaa2011<-ncaa2011[,-2]
 ncaa2011<-ncaa2011[,-2]
 
-#Do some quartile tests to see which of these variables have predictive power
-
-#2013 Season
-#Win Loss %
-ncaa2013$wl.q<-cut(ncaa2013$W.L.,
-            breaks=quantile(ncaa2013$W.L.,probs=seq(0,1,by=.25)),
-            include.lowest=TRUE)
-
-rpi.wl.2013<-tapply(ncaa2013$RPI,ncaa2013$wl.q,mean)
-
-tab.wl.q.2013<-aggregate(ncaa2013$RPI,by=list(ncaa2013$wl.q),FUN="mean")
-
-tab.wl.q.2013
-#Win Loss % Has a lot of Predictive Power on RPI
-
-#Now let's test Strength of Schedule
-ncaa2013$pp100.q<-cut(ncaa2013$SOS,
-                   breaks=quantile(ncaa2013$SOS,probs=seq(0,1,by=.25)),
-                   include.lowest=TRUE)
-
-rpi.sos.2013<-tapply(ncaa2013$RPI,ncaa2013$pp100.q,mean)
-
-tab.pp100.q.2013<-aggregate(ncaa2013$RPI,by=list(ncaa2013$sos.q),FUN="mean")
-
-tab.sos.q.2013
-#Strength of Schedule Has Predictive Power Too
-
-#Let's Move on to Linear Regression
-#We'll Need This
-
-rmse <- function(error)
-{
-  sqrt(mean(error^2))
-}
-
-#Using only RPI
-#2013
-linear.rpi.2013<-lm(Tournament.~RPI,data=ncaa2013) #outcome on left, predictor on right 
-
-summary(linear.rpi.2013)
-
-g.rpi.2013<-ggplot(ncaa2013,aes(x=RPI,y=Tournament.,group=1))+
-  geom_jitter()
-
-g.rpi.2013
-
-pred.rpi.2013<-predict(linear.rpi.2013)
-
-rmse(ncaa2013$Tournament.-pred.rpi.2013)
-
-#2012
-linear.rpi.2012<-lm(Tournament.~RPI,data=ncaa2012) #outcome on left, predictor on right 
-
-summary(linear.rpi.2012)
-
-g.rpi.2012<-ggplot(ncaa2012,aes(x=RPI,y=Tournament.,group=1))+
-  geom_jitter()
-
-g.rpi.2012
-
-pred.rpi.2012<-predict(linear.rpi.2012)
-
-rmse(ncaa2012$Tournament.-pred.rpi.2012)
-
-#2011
-linear.rpi.2011<-lm(Tournament.~RPI,data=ncaa2011) 
-
-summary(linear.rpi.2011)
-
-g.rpi.2011<-ggplot(ncaa2011,aes(x=RPI,y=Tournament.,group=1))+
-  geom_jitter()
-
-g.rpi.2011
-
-pred.rpi.2011<-predict(linear.rpi.2011)
-
-rmse(ncaa2011$Tournament.-pred.rpi.2011)
-
-#Add in Other Variables
-lin.mod.2013<-lm(Tournament.~ RPI+
-                              SOS+
-                              Pace+
-                              PP100.Poss.+
-                              TS.+
-                              TRB.+
-                              AST.+
-                              STL.+
-                              TOV.
-                              ,data=ncaa2013) 
-
-summary(lin.mod.2013)
-
-pred.lin.2013<-predict(lin.mod.2013)
-
-rmse(ncaa2013$Tournament.-pred.lin.2013)
-
-
-#Logistical Regression Will be a Better Fit
-log.mod.2013<-glm(Tournament.~ RPI+
+#Logistical Regression
+log.mod.2013<-glm(Tournament.~ RPI:SOS+ #This interaction is good
                                SOS+
                                Pace+
-                               PP100.Poss.+
-                               TS.+
-                               TRB.+
+                               PP100.Poss.+ #This one definitely stays
+                               #TS.+ #This one is terrible
+                               #TRB.+
                                AST.+
-                               STL.+
-                               TOV.,
-               data=ncaa2013,
-               y=TRUE)
+                               #STL.+
+                               TOV., #Turnover Margin is good
+                               data=ncaa2013,
+                               y=TRUE)
 
 summary(log.mod.2013)
-
 log.pred.2013<-predict(log.mod.2013,type="response")
-
 log.roc.2013<-roc(log.pred.2013,as.factor(log.mod.2013$y))
-
 auc(log.roc.2013)
-
 plot(log.roc.2013)
-
-#This is Pretty Compelling
 
 #Let's Test this model on 2012 and 2011
 
+pred.new<-predict(log.mod.2013,newdata=ncaa2012, type="response")
+log.roc.new<-roc(pred.new,as.factor(log.mod.2013$y))
+auc(log.roc.new)
+
+pred.new1<-predict(log.mod.2013,newdata=ncaa2011, type="response")
+log.roc.new1<-roc(pred.new1,as.factor(log.mod.2013$y))
+auc(log.roc.new1)
+
+auc(log.roc.2013)
+auc(log.roc.new)
+auc(log.roc.new1)
+#Not bad but we're still overfitting
+
+#Let's try Bootstrapping using a combined data set
+#first combine the data sets
+
+ncaa<-rbind(ncaa2013,ncaa2012,ncaa2011)
+
+#Put a model in using ncaa data set
+log.mod<-glm(Tournament.~ RPI:SOS+ 
+                          Pace+
+                          PP100.Poss.+ 
+                          AST.+
+                          TOV., 
+                          data=ncaa,
+                          y=TRUE)
+
+summary(log.mod)
+
+#Now let's run the bootstrap samples
+thames.boot<-Boot(log.mod,R=10000)
+
+summary(thames.boot,high.moments=F)
+
+#Here are our new confidence intervals
+confint(thames.boot,level=.9,type="norm")
+
+#Rig it like this to find the midpoint
+confint(thames.boot,level=.000000001,type="norm")
+
+#And our coefficients are
+#intercept = -2.397788
+#Pace = -3.900091e-3
+#PP100.Poss. = 2.628452e-2
+#AST. = 3.07147e-3
+#TOV. = 4.856387e-4
+#RPI:SOS = 3.182813e-5
+
+#Let's load those coefficients into the model
+log.mod$coefficients
+log.mod$coefficients$'(Intercept)'<- -2.397788
+log.mod$coefficients$Pace<- -3.900091e-3
+log.mod$coefficients$PP100.Poss.<- 2.628452e-2
+log.mod$coefficients$AST.<- 3.07147e-3
+log.mod$coefficients$TOV.<- 4.856387e-4
+log.mod$coefficients$'RPI:SOS' <- 3.182813e-5
+
+log.mod$coefficients
+
+#Let's use these coefficients on the yearly datasets and check AUCs
+predict.2013<-predict(log.mod,newdata=ncaa2013, type="response")
+predict.roc.2013<-roc(predict.2013,as.factor(log.mod$y))
+auc(predict.roc.2013)
+
+#^Here's what doesnt't work
 
 
 
-
-
-
+#We could show a confusion matrix that tells us how many teams we're correctly predicting
+#Random sampling from the combined - bootstrap
+#We can go through and show names on the log.mod, then we can reassign coefficients like this
+#   log.mod.2013$coefficients$AST.<-10
+#maybe we can look at predicting RPI
+#what affects RPI can lead to suggestions for coaches
+#deliverables: hypothetical bracket, last four in, first four out, next four out
+#look at the shape of the probabilities, let's do it with 2010
+#start presentation with snubbed teams - who gets in who doesn't
+#what does the selection committee use?
