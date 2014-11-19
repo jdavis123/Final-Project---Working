@@ -158,7 +158,7 @@ predict.2010<-predict(log.mod,newdata=ncaa2010, type="response")
 predict.roc.2010<-roc(predict.2010,as.factor(ncaa2010$flag))
 auc(predict.roc.2010)
 
-#AUC = .97
+#AUC = .975
 
 #Put the probability of tournement entry into the data sets as a variable
 ncaa2013$probability<-predict.2013
@@ -173,36 +173,56 @@ ncaa2011<-ncaa2011[order(-ncaa2011$probability),]
 ncaa2010<-ncaa2010[order(-ncaa2010$probability),]
 
 #Now we have a rank order of likelihood
-View(ncaa2013)
+#Different years have different amounts of spots not stolen by auto bids
+#Luckily, you can use our trusty flag to figure out how many spots are legit
+#This will show you how many teams should be considered "in" in each year
 
-in.2013<-ncaa2013[1:64,c(1,16,19)]
-in.2012<-ncaa2012[1:64,c(1,16,19)]
-in.2011<-ncaa2011[1:64,c(1,16,19)]
-in.2010<-ncaa2010[1:61,c(1,16,19)]
+sum(ncaa2013$flag)
+sum(ncaa2012$flag)
+sum(ncaa2011$flag)
+sum(ncaa2010$flag)
 
-last.four.in.2013<-ncaa2013[65:68,c(1,16,19)]
-last.four.in.2012<-ncaa2012[65:68,c(1,16,19)]
-last.four.in.2011<-ncaa2011[65:68,c(1,16,19)]
-last.four.in.2010<-ncaa2010[62:65,c(1,16,19)]
+in.2013<-ncaa2013[1:43,c(1,16,19)]
+in.2012<-ncaa2012[1:44,c(1,16,19)]
+in.2011<-ncaa2011[1:46,c(1,16,19)]
+in.2010<-ncaa2010[1:33,c(1,16,19)]
 
-first.four.out.2013<-ncaa2013[69:72,c(1,16,19)]
-first.four.out.2012<-ncaa2012[69:72,c(1,16,19)]
-first.four.out.2011<-ncaa2011[69:72,c(1,16,19)]
-first.four.out.2010<-ncaa2010[66:69,c(1,16,19)]
+last.four.in.2013<-ncaa2013[44:47,c(1,16,19)]
+last.four.in.2012<-ncaa2012[45:48,c(1,16,19)]
+last.four.in.2011<-ncaa2011[47:50,c(1,16,19)]
+last.four.in.2010<-ncaa2010[34:37,c(1,16,19)]
 
-next.four.out.2013<-ncaa2013[73:76,c(1,16,19)]
-next.four.out.2012<-ncaa2012[73:76,c(1,16,19)]
-next.four.out.2011<-ncaa2011[73:76,c(1,16,19)]
-next.four.out.2010<-ncaa2010[70:73,c(1,16,19)]
+first.four.out.2013<-ncaa2013[48:51,c(1,16,19)]
+first.four.out.2012<-ncaa2012[49:52,c(1,16,19)]
+first.four.out.2011<-ncaa2011[51:54,c(1,16,19)]
+first.four.out.2010<-ncaa2010[38:41,c(1,16,19)]
+
+next.four.out.2013<-ncaa2013[52:55,c(1,16,19)]
+next.four.out.2012<-ncaa2012[53:56,c(1,16,19)]
+next.four.out.2011<-ncaa2011[55:58,c(1,16,19)]
+next.four.out.2010<-ncaa2010[42:45,c(1,16,19)]
 
 last.four.in.2013
 first.four.out.2013
 next.four.out.2013
 
-#let's investigate the teams that we predicted would get in but didn't
-#see if there are any articles about them getting snubbed
-#also let's check if there are any surprises that got in without being conference champs
-#use the automatic bid variable in the 2010 data frame
+#Subset to only teams that didn't get in
+
+snub.2013<-ncaa2013[ncaa2013$Tournament.==0,]
+snub.2013<-snub.2013[,c(1,15,19)]
+View(snub.2013)
+
+snub.2012<-ncaa2012[ncaa2012$Tournament.==0,]
+snub.2012<-snub.2012[,c(1,15,19)]
+View(snub.2012)
+
+snub.2011<-ncaa2011[ncaa2011$Tournament.==0,]
+snub.2011<-snub.2011[,c(1,15,19)]
+View(snub.2011)
+
+snub.2010<-ncaa2010[ncaa2010$Tournament.==0,]
+snub.2010<-snub.2010[,c(1,15,19)]
+View(snub.2010)
 
 #Harvard was a huge "snub" in the 2010 season
 #let's see what we predicted
@@ -211,8 +231,6 @@ next.four.out.2013
 
 #SMU in 2013
 #Kentucky in 2012
-
-
 
 
 
