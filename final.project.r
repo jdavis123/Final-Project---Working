@@ -59,17 +59,11 @@ ncaa2011$flag[ncaa2011$Tournament.==1 & ncaa2011$RPI<40]<-1
 ncaa2011$flag[ncaa2011$Tournament.==1 & ncaa2011$auto.bid==0]<-1
 
 #Logistical Regression
-log.mod.2013<-glm(flag~ RPI:SOS+ #This interaction is good
-                               SOS+
-                               Pace+
-                               PP100.Poss.+ #This one definitely stays
-                               #TS.+ #This one is terrible
-                               #TRB.+
-                               AST.+
-                               #STL.+
-                               TOV., #Turnover Margin is good
-                               data=ncaa2013,
-                               y=TRUE)
+log.mod.2013<-glm(flag~ RPI+ 
+                        SOS+
+                        PP100.Poss.,
+                        data=ncaa2013,
+                        y=TRUE)
 
 summary(log.mod.2013)
 log.pred.2013<-predict(log.mod.2013,type="response")
@@ -100,10 +94,7 @@ ncaa<-rbind(ncaa2013,ncaa2012,ncaa2011)
 #Put a model in using ncaa data set
 log.mod<-glm(flag~ RPI+
                    SOS+ 
-                   #Pace+
                    PP100.Poss., 
-                   #AST.+
-                   #TOV., 
                    data=ncaa,
                    y=TRUE)
 
