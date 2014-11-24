@@ -160,6 +160,12 @@ auc(predict.roc.2010)
 
 #AUC = .975
 
+plot(predict.roc.2013,main="2013\nAUC = .99")
+plot(predict.roc.2012,main="2012\nAUC = .99")
+plot(predict.roc.2011,main="2011\nAUC = .97")
+plot(predict.roc.2010,main="2010\nAUC = .98")
+
+
 #Put the probability of tournement entry into the data sets as a variable
 ncaa2013$probability<-predict.2013
 ncaa2012$probability<-predict.2012
@@ -182,10 +188,15 @@ sum(ncaa2012$flag)
 sum(ncaa2011$flag)
 sum(ncaa2010$flag)
 
-in.2013<-ncaa2013[1:43,c(1,16,19)]
-in.2012<-ncaa2012[1:44,c(1,16,19)]
-in.2011<-ncaa2011[1:46,c(1,16,19)]
-in.2010<-ncaa2010[1:33,c(1,16,19)]
+in.2013<-ncaa2013[1:47,c(1,16,18,19)]
+in.2012<-ncaa2012[1:48,c(1,16,18,19)]
+in.2011<-ncaa2011[1:50,c(1,16,18,19)]
+in.2010<-ncaa2010[1:37,c(1,16,18,19)]
+
+out.2013<-ncaa2013[48:346,c(1,16,18,19)]
+out.2012<-ncaa2012[49:344,c(1,16,18,19)]
+out.2011<-ncaa2011[51:341,c(1,16,18,19)]
+out.2010<-ncaa2010[38:345,c(1,16,18,19)]
 
 last.four.in.2013<-ncaa2013[44:47,c(1,16,19)]
 last.four.in.2012<-ncaa2012[45:48,c(1,16,19)]
@@ -210,32 +221,101 @@ next.four.out.2013
 
 snub.2013<-ncaa2013[ncaa2013$Tournament.==0,]
 snub.2013<-snub.2013[,c(1,15,19)]
-View(snub.2013)
 
 snub.2012<-ncaa2012[ncaa2012$Tournament.==0,]
 snub.2012<-snub.2012[,c(1,15,19)]
-View(snub.2012)
 
 snub.2011<-ncaa2011[ncaa2011$Tournament.==0,]
 snub.2011<-snub.2011[,c(1,15,19)]
-View(snub.2011)
 
 snub.2010<-ncaa2010[ncaa2010$Tournament.==0,]
 snub.2010<-snub.2010[,c(1,15,19)]
-View(snub.2010)
 
-#Harvard was a huge "snub" in the 2010 season
-#let's see what we predicted
+#Let's start making some graphics that tell us how well we did
 
-#Drexel was a huge snub in the 2011 season
+#2013
 
-#SMU in 2013
-#Kentucky in 2012
+in.2013$predict<-"Predict IN"
+out.2013$predict<-"Predict OUT"
+final.2013<-rbind(in.2013,out.2013)
+temp.2013<-final.2013[final.2013$flag==1,]
+temp.2013$flag1<-"Actual IN"
+temp.1.2013<-final.2013[final.2013$flag==0,]
+temp.1.2013$flag1<-"Actual OUT"
+final.2013<-rbind(temp.2013,temp.1.2013)
+remove(temp.2013)
+remove(temp.1.2013)
+table.2013<-table(final.2013$predict,final.2013$flag1)
+p.table.2013<-prop.table(table.2013,margin=1)
 
+#2012
+
+in.2012$predict<-"Predict IN"
+out.2012$predict<-"Predict OUT"
+final.2012<-rbind(in.2012,out.2012)
+temp.2012<-final.2012[final.2012$flag==1,]
+temp.2012$flag1<-"Actual IN"
+temp.1.2012<-final.2012[final.2012$flag==0,]
+temp.1.2012$flag1<-"Actual OUT"
+final.2012<-rbind(temp.2012,temp.1.2012)
+remove(temp.2012)
+remove(temp.1.2012)
+table.2012<-table(final.2012$predict,final.2012$flag1)
+p.table.2012<-prop.table(table.2012,margin=1)
+
+#2011
+
+in.2011$predict<-"Predict IN"
+out.2011$predict<-"Predict OUT"
+final.2011<-rbind(in.2011,out.2011)
+temp.2011<-final.2011[final.2011$flag==1,]
+temp.2011$flag1<-"Actual IN"
+temp.1.2011<-final.2011[final.2011$flag==0,]
+temp.1.2011$flag1<-"Actual OUT"
+final.2011<-rbind(temp.2011,temp.1.2011)
+remove(temp.2011)
+remove(temp.1.2011)
+table.2011<-table(final.2011$predict,final.2011$flag1)
+p.table.2011<-prop.table(table.2011,margin=1)
+
+#2010
+
+in.2010$predict<-"Predict IN"
+out.2010$predict<-"Predict OUT"
+final.2010<-rbind(in.2010,out.2010)
+temp.2010<-final.2010[final.2010$flag==1,]
+temp.2010$flag1<-"Actual IN"
+temp.1.2010<-final.2010[final.2010$flag==0,]
+temp.1.2010$flag1<-"Actual OUT"
+final.2010<-rbind(temp.2010,temp.1.2010)
+remove(temp.2010)
+remove(temp.1.2010)
+table.2010<-table(final.2010$predict,final.2010$flag1)
+p.table.2010<-prop.table(table.2010,margin=1)
+
+
+heights<-c(.9595,.0405,.9767,.0233,.9531,.0469,.9362,.0638)
+mydata<-matrix(heights,
+               ncol=2,
+               byrow=T,
+               dimnames=list(c("2013","2012","2011","2010"),
+                             c("Correct","Incorrect")))
+               
+colors<-c("green","red")
+
+barplot(t(mydata),
+        beside=T,
+        horiz=F,
+        col=colors,
+        ylim=c(0,1.4),
+        axes=F,
+        )
+axis(2,at = c(0,.2,.4,.6,.8,1),labels = c("0%","20%","40%","60%","80%","100%"),las=T)
+title(main=("Model Performance by Year"),xlab="Year")
+legend("topright",colnames(mydata),fill=colors,bty="n")
 
 
 #We could show a confusion matrix that tells us how many teams we're correctly predicting
-#Random sampling from the combined - bootstrap
 #We can go through and show names on the log.mod, then we can reassign coefficients like this
 #   log.mod.2013$coefficients$AST.<-10
 #maybe we can look at predicting RPI
