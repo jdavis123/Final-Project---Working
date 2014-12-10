@@ -157,6 +157,7 @@ ncaa2010$flag[ncaa2010$Tournament.==1 & ncaa2010$auto.bid==0]<-1
 predict.2010<-predict(log.mod,newdata=ncaa2010, type="response")
 predict.roc.2010<-roc(predict.2010,as.factor(ncaa2010$flag))
 auc(predict.roc.2010)
+plot(predict.roc.2010)
 
 #AUC = .97
 
