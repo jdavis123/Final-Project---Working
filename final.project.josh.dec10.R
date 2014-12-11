@@ -263,33 +263,46 @@ snub.2010<-snub.2010[,c(1,15,19)]
 
 
 #Now let's Compare Flag vs. Predicted Probability
- 
-#2013
-g2013<-ggplot(data=ncaa2013,
-              aes(x=probability,y=flag))
+#first create predict in variable
 
-g2013<-g2013+geom_point() + ggtitle("2013 Flag vs. Projected Probability") + ylim(-1,2) +xlim(0,1)
+ncaa2013$hit<-0
+ncaa2013$hit[ncaa2013$probability>.4428]<-1
+
+ncaa2012$hit<-0
+ncaa2012$hit[ncaa2012$probability>.4143]<-1
+
+ncaa2011$hit<-0
+ncaa2011$hit[ncaa2011$probability>.3908]<-1
+
+ncaa2010$hit<-0
+ncaa2010$hit[ncaa2010$probability>.4467]<-1
+
+#2013
+g2013<-ggplot(data=ncaa2013, 
+              aes(x=hit,y=flag))
+
+g2013<-g2013 + ggtitle("2013 Deserved Entry vs. Predicted Entry") + ylim(-1,2) +xlim(0,1) + geom_point(position = position_jitter(w = 0.2, h = 0.2))+xlab("Predicted")+ylab("Deserved")
 g2013
 
 #2012
 g2012<-ggplot(data=ncaa2012,
-              aes(x=probability,y=flag))
+              aes(x=hit,y=flag))
 
-g2012<-g2012+geom_point() + ggtitle("2012 Flag vs. Projected Probability")+ ylim(-1,2) +xlim(0,1)
+g2012<-g2012+geom_point(position = position_jitter(w = 0.2, h = 0.2)) + ggtitle("2012 Deserved Entry vs. Predicted Entry")+ ylim(-1,2) +xlim(0,1)+xlab("Predicted")+ylab("Deserved")
 g2012
 
 #2011
 g2011<-ggplot(data=ncaa2011,
-              aes(x=probability,y=flag))
+              aes(x=hit,y=flag))
 
-g2011<-g2011+geom_point() + ggtitle("2011 Flag vs. Projected Probability")+ ylim(-1,2) +xlim(0,1)
+g2011<-g2011+geom_point(position = position_jitter(w = 0.2, h = 0.2)) + ggtitle("2011 Deserved Entry vs. Predicted Entry")+ ylim(-1,2) +xlim(0,1)+xlab("Predicted")+ylab("Deserved")
 g2011
 
 #2010
 g2010<-ggplot(data=ncaa2010,
-              aes(x=probability,y=flag))
+              aes(x=hit,y=flag))
 
-g2010<-g2010+geom_point() + ggtitle("2010 Flag vs. Projected Probability")+ ylim(-1,2) +xlim(0,1)
+g2010<-g2010+geom_point(position = position_jitter(w = 0.2, h = 0.2)) + ggtitle("2010 Deserved Entry vs. Predicted Entry")+ ylim(-1,2) +xlim(0,1)+xlab("Predicted")+ylab("Deserved")
 g2010
 
 
@@ -379,12 +392,4 @@ title(main=("Model Performance by Year"),xlab="Year")
 legend("topright",colnames(mydata),fill=colors,bty="n")
 
 
-#We could show a confusion matrix that tells us how many teams we're correctly predicting
-#We can go through and show names on the log.mod, then we can reassign coefficients like this
-#   log.mod.2013$coefficients$AST.<-10
-#maybe we can look at predicting RPI
-#what affects RPI can lead to suggestions for coaches
-#deliverables: hypothetical bracket, last four in, first four out, next four out
-#look at the shape of the probabilities, let's do it with 2010
-#start presentation with snubbed teams - who gets in who doesn't
-#what does the selection committee use?
+
